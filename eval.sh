@@ -1,0 +1,1 @@
+catanatron-play --code=eval.py --players=ME,R,R,R --num=10

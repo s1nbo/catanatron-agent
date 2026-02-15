@@ -1,0 +1,5 @@
+catanatron[experimental,gym] @ git+https://github.com/bcollazo/catanatron.git
+gymnasium
+numpy
+stable-baselines3
+sb3-contrib
