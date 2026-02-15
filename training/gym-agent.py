@@ -37,8 +37,8 @@ def train(time_steps=10000, n_envs=8):
     model.learn(total_timesteps=time_steps)
     
     print("Saving Model...")
-    model.save("ppo_catanatron-2")
-    print("Model saved to ppo_catanatron-2.zip")
+    model.save("ppo_catanatron-1")
+    print("Model saved to ppo_catanatron-1.zip")
     env.close()
 
 if __name__ == "__main__":

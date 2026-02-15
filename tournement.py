@@ -9,7 +9,6 @@ from sb3_contrib import MaskablePPO
 from agent import MyRandomBot
 from catanatron.cli.cli_players import AlphaBetaPlayer
 
-register_cli_player("MYRANDOM", MyRandomBot)
 # Register a stronger AlphaBeta bot
 # depth=3 is significantly harder than depth=2. prunning=True makes it faster.
 register_cli_player("STRONG_AB", lambda color: AlphaBetaPlayer(color, depth=3, prunning=True))
