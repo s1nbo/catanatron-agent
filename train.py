@@ -44,7 +44,7 @@ def train(time_steps=100000, n_envs=8):
 
     print(f"Starting Training...")
     model.learn(total_timesteps=time_steps)
-    model.save("ppo_catanatron_00")
+    model.save("ppo_catanatron_01")
     print("Model saved.")
     env.close()
 

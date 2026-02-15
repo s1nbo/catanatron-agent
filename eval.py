@@ -7,7 +7,7 @@ from catanatron.features import create_sample, get_feature_ordering
 from catanatron.gym.envs.catanatron_env import to_action_space, ACTION_SPACE_SIZE
 
 class MyBot(Player):
-    MODEL_PATH = "ppo_catanatron_00.zip"
+    MODEL_PATH = "ppo_catanatron_01.zip"
     _model = None
     _features_ordering = None
 
@@ -26,14 +26,16 @@ class MyBot(Player):
         observation = self._get_observation(game)
         action_mask, action_mapping = self._get_action_mask(playable_actions)
         
-        predicted_idx = self._predict(observation, action_mask)
+        try:
+            predicted_idx = self._predict(observation, action_mask)
+            mapped_action = action_mapping.get(predicted_idx)
+            if mapped_action is not None:
+                return mapped_action
+            print(f"Warning: Predicted action {predicted_idx} is not valid. Falling back to random choice.")
+        except Exception as e:
+            print(f"Error during prediction: {e}. Falling back to random choice.")
         
-        mapped_action = action_mapping.get(predicted_idx)
-        if mapped_action is not None:
-            return mapped_action
-        
-        print("Warning: Predicted action is not valid. Falling back to random choice.")
-        return playable_actions[0]
+        return np.random.choice(playable_actions)
 
     def _get_observation(self, game: Game) -> np.ndarray:
         sample = create_sample(game, self.color)
