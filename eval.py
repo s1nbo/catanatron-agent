@@ -10,7 +10,7 @@ class MyBot(Player):
     _models = {}
     _features_ordering = None
 
-    def __init__(self, color, model_path="ppo_catanatron_01.zip"):
+    def __init__(self, color, model_path="ppo_catanatron_02.zip"):
         super().__init__(color)
         self.model_path = model_path
         self._load_resources()

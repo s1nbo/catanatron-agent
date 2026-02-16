@@ -38,18 +38,18 @@ def train(time_steps=100000, n_envs=8):
         env, 
         verbose=1, 
         device="cuda", 
-        batch_size=2048,
-        n_steps=2048
+        batch_size=4096,
+        n_steps=4096,
     )
 
     print(f"Starting Training...")
     model.learn(total_timesteps=time_steps)
-    model.save("ppo_catanatron_01")
+    model.save("ppo_catanatron_02")
     print("Model saved.")
     env.close()
 
 if __name__ == "__main__":
     # Example usage: python train.py 1000000 16
-    ts = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
-    n_envs = int(sys.argv[2]) if len(sys.argv) > 2 else 8
+    ts = int(sys.argv[1]) if len(sys.argv) > 1 else 1_000_000_000
+    n_envs = int(sys.argv[2]) if len(sys.argv) > 2 else 64
     train(time_steps=ts, n_envs=n_envs)
