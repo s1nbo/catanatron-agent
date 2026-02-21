@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import catanatron.gym
 from catanatron.models.player import Color, RandomPlayer
+from catanatron.players.minimax import AlphaBetaPlayer
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.env_util import make_vec_env
@@ -13,13 +14,15 @@ def mask_fn(env):
     mask[valid_action_indices] = True
     return mask
 
-def train(time_steps=100000, n_envs=8):
+def train(time_steps=10, n_envs=8):
     env_kwargs = {
+        "render_mode": None,  # Disable rendering for all environments
         "config": {
             "enemies": [
-                RandomPlayer(Color.RED),
-                RandomPlayer(Color.ORANGE),
-                RandomPlayer(Color.WHITE),
+                AlphaBetaPlayer(Color.RED),
+                AlphaBetaPlayer(Color.ORANGE),
+                AlphaBetaPlayer(Color.WHITE),
+                
             ]
         }
     }
@@ -30,7 +33,8 @@ def train(time_steps=100000, n_envs=8):
         env_kwargs=env_kwargs,
         wrapper_class=ActionMasker,
         wrapper_kwargs={"action_mask_fn": mask_fn},
-        vec_env_cls=SubprocVecEnv
+        vec_env_cls=SubprocVecEnv,
+        
     )
     
     model = MaskablePPO(
@@ -44,12 +48,12 @@ def train(time_steps=100000, n_envs=8):
 
     print(f"Starting Training...")
     model.learn(total_timesteps=time_steps)
-    model.save("ppo_catanatron_02")
+    model.save("ppo_catanatron_03")
     print("Model saved.")
     env.close()
 
 if __name__ == "__main__":
     # Example usage: python train.py 1000000 16
-    ts = int(sys.argv[1]) if len(sys.argv) > 1 else 1_000_000_000
-    n_envs = int(sys.argv[2]) if len(sys.argv) > 2 else 64
+    ts = int(sys.argv[1]) if len(sys.argv) > 1 else 10
+    n_envs = int(sys.argv[2]) if len(sys.argv) > 2 else 8
     train(time_steps=ts, n_envs=n_envs)
