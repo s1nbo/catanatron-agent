@@ -17,7 +17,6 @@ from optuna.pruners import MedianPruner
 from optuna.samplers import TPESampler
 
 class TrialEvalCallback(BaseCallback):
-    """Callback used for evaluating and reporting a trial."""
     def __init__(self, trial: optuna.Trial, verbose=0):
         super().__init__(verbose)
         self.trial = trial
@@ -42,7 +41,7 @@ def mask_fn(env):
     mask[valid_action_indices] = True
     return mask
 
-def objective(trial):
+def objective(trial, n_envs=64, total_timesteps=100_000):
     # Hyperparameters to tune
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-3, log=True)
     n_steps = trial.suggest_categorical("n_steps", [1024, 2048, 4096, 8192])
@@ -58,21 +57,15 @@ def objective(trial):
         config=trial.params,
         reinit=True,
         sync_tensorboard=True,
-        monitor_gym=False,  # Explicitly disable gym monitoring
+        monitor_gym=False,
     )
-    
-    # Ensure batch_size is a factor of n_steps * n_envs to avoid errors
-    # SB3 requires n_steps * n_envs to be greater than batch_size
-    # Default n_steps is usually per-env.
-    n_envs = 64 
-     
+
     env_kwargs = {
         "config": {
             "enemies": [
                 RandomPlayer(Color.RED),
                 RandomPlayer(Color.ORANGE),
                 RandomPlayer(Color.WHITE),
-
             ]
         }
     }
@@ -104,8 +97,6 @@ def objective(trial):
 
         callback = TrialEvalCallback(trial)
         
-        # Train for a limited number of steps per trial to save time
-        total_timesteps = 100_000
         model.learn(total_timesteps=total_timesteps, callback=callback)
 
         if callback.is_pruned:
