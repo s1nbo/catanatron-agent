@@ -44,12 +44,13 @@ def mask_fn(env):
 def objective(trial, n_envs=64, total_timesteps=100_000):
     # Hyperparameters to tune
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-3, log=True)
-    n_steps = trial.suggest_categorical("n_steps", [1024, 2048, 4096, 8192])
-    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512])
-    ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True)
-    gamma = trial.suggest_float("gamma", 0.9, 0.9999)
-    gae_lambda = trial.suggest_float("gae_lambda", 0.9, 1.0)
-    clip_range = trial.suggest_float("clip_range", 0.1, 0.4)
+    n_steps = trial.suggest_categorical("n_steps", [1024, 2048, 4096, 8192]) 
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512]) 
+    ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True) # entropy coefficient
+    gamma = trial.suggest_float("gamma", 0.9, 0.9999) # discount factor
+    gae_lambda = trial.suggest_float("gae_lambda", 0.9, 1.0) # GAE lambda
+    clip_range = trial.suggest_float("clip_range", 0.1, 0.4) # PPO clipping range
+
 
     # Initialize wandb run for this trial
     run = wandb.init(
