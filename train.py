@@ -16,7 +16,6 @@ def mask_fn(env):
 
 def train(time_steps=10, n_envs=8):
     env_kwargs = {
-        "render_mode": None,  # Disable rendering for all environments
         "config": {
             "enemies": [
                 AlphaBetaPlayer(Color.RED),

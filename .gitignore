@@ -2,3 +2,6 @@
 /__pycache__/*
 *.zip
 training_log.txt
+/wandb/*
+catanatron_optuna.db
+/runs/*

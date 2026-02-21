@@ -71,11 +71,10 @@ def create_bot_class(model_path, name):
     Bot.__name__ = name
     return Bot
 
-Bot02 = create_bot_class("ppo_catanatron_02.zip", "Bot02")
 Bot01 = create_bot_class("ppo_catanatron_01.zip", "Bot01")
-Bot00 = create_bot_class("ppo_catanatron_00.zip", "Bot00")
+Bot02 = create_bot_class("ppo_catanatron_02.zip", "Bot02")
+Bot03 = create_bot_class("ppo_catanatron_03.zip", "Bot03")
 
-register_cli_player("0", Bot02)
-register_cli_player("1", Bot01)
-register_cli_player("2", Bot00)
-register_cli_player("3", Bot00)
+register_cli_player("1", Bot02)
+register_cli_player("2", Bot01)
+register_cli_player("3", Bot03)
