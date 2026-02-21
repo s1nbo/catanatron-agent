@@ -107,7 +107,11 @@ def objective(trial, n_envs=64, total_timesteps=100_000):
         mean_reward = 0
         if len(model.ep_info_buffer) > 0:
             mean_reward = np.mean([ep_info["r"] for ep_info in model.ep_info_buffer])
-        
+    
+    except optuna.exceptions.TrialPruned as e:
+        print(f"Trial pruned at step {callback.n_calls} with mean reward {mean_reward}")
+        raise e
+    
     except Exception as e:
         print(f"Trial failed with error: {e}")
         mean_reward = -float('inf') 
