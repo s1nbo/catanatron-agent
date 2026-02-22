@@ -1,0 +1,8 @@
+{
+    "random_red": {
+        "type": "random",
+        "path": null,
+        "elo": 1000,
+        "games": 0
+    }
+}

@@ -18,9 +18,9 @@ def train(time_steps=10, n_envs=8, model_path=None):
     env_kwargs = {
         "config": {
             "enemies": [
-                AlphaBetaPlayer(Color.RED),
-                AlphaBetaPlayer(Color.ORANGE),
-                AlphaBetaPlayer(Color.WHITE),
+                RandomPlayer(Color.RED),
+                RandomPlayer(Color.ORANGE),
+                RandomPlayer(Color.WHITE),
                 
             ]
         }
