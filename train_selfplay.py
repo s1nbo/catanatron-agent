@@ -77,15 +77,14 @@ def train_selfplay():
     # Load parameters
     params = get_optuna_params()
     
-    # Construct MaskablePPO arguments
-    # We explicitly set defaults if params are missing
-    learning_rate = params.get("learning_rate", 3e-4)
-    n_steps = params.get("n_steps", 4096)
-    batch_size = params.get("batch_size", 256)
-    ent_coef = params.get("ent_coef", 0.01)
-    gamma = params.get("gamma", 0.99)
-    gae_lambda = params.get("gae_lambda", 0.95)
-    clip_range = params.get("clip_range", 0.2)
+    # Tuned hyperparameters from Optuna optimization
+    learning_rate = params.get("learning_rate", 0.0009674608384885506)
+    n_steps = params.get("n_steps", 1024)
+    batch_size = params.get("batch_size", 512)
+    ent_coef = params.get("ent_coef",3.641487559642055e-05)
+    gamma = params.get("gamma",  0.9996030561768017)
+    gae_lambda = params.get("gae_lambda", 0.9998258433696674)
+    clip_range = params.get("clip_range",  0.38705285305039916)
     
     model = MaskablePPO(
         "MlpPolicy",
