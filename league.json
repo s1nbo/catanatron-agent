@@ -1,8 +1,99 @@
 {
-    "random_red": {
-        "type": "random",
+    "random_v0": {
         "path": null,
         "elo": 1000,
+        "games": 154,
+        "generation": 0,
+        "type": "random"
+    },
+    "quicktest_gen_1": {
+        "type": "ppo",
+        "path": "league_models/quicktest_gen_1.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "quicktest_gen_2": {
+        "type": "ppo",
+        "path": "league_models/quicktest_gen_2.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "quicktest_gen_3": {
+        "type": "ppo",
+        "path": "league_models/quicktest_gen_3.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "quicktest_gen_4": {
+        "type": "ppo",
+        "path": "league_models/quicktest_gen_4.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "quicktest_gen_5": {
+        "type": "ppo",
+        "path": "league_models/quicktest_gen_5.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "quicktest_gen_6": {
+        "type": "ppo",
+        "path": "league_models/quicktest_gen_6.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_1": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_1.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_2": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_2.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_3": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_3.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_4": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_4.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_5": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_5.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_6": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_6.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_7": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_7.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_8": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_8.zip",
+        "elo": 1000.0,
+        "games": 0
+    },
+    "production_run_gen_9": {
+        "type": "ppo",
+        "path": "league_models/production_run_gen_9.zip",
+        "elo": 1000.0,
         "games": 0
     }
 }

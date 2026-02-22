@@ -21,7 +21,7 @@ def mask_fn(env):
     return mask
 
 class LeagueCallback(BaseCallback):
-    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1, max_league_size=50):
+    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1, max_league_size=16):
         super().__init__(verbose)
         self.league = league
         self.check_freq = check_freq

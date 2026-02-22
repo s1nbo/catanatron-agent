@@ -13,6 +13,10 @@ class SelfPlayEnv(CatanatronEnv):
         self.league = League()
         self.hero_name = "current_training_agent" 
         
+        # Buffer config: sample new opponents every N games
+        self.games_played = 0
+        self.opponent_refresh_rate = 10000
+        
         # The reset() method will sample actual opponents from the league and update this config before each episode starts.
         config["enemies"] = [
             self.league.get_player_instance("random_red", Color.RED, {"type": "random"}),
@@ -23,20 +27,23 @@ class SelfPlayEnv(CatanatronEnv):
         super().__init__(config=config, **kwargs)
 
     def reset(self, seed=None, options=None):
-        # Sample new enemies
-        enemy_data = self.league.sample_opponents(3)
-        self.current_enemy_names = [name for name, _ in enemy_data]
+        self.games_played += 1
         
-        # Assign colors to enemies
-        # Assumes Hero is BLUE. We assign other colors to enemies.
-        colors = [Color.RED, Color.ORANGE, Color.WHITE]
-        enemies = []
-        for i, (name, data) in enumerate(enemy_data):
-            player = self.league.get_player_instance(name, colors[i], data)
-            enemies.append(player)
+        # Sample new enemies only every N games, or if not yet set
+        if not hasattr(self, "current_enemy_names") or self.games_played % self.opponent_refresh_rate == 0:
+            enemy_data = self.league.sample_opponents(3)
+            self.current_enemy_names = [name for name, _ in enemy_data]
             
-        # Update internal game configuration so super().reset() uses new enemies
-        self.config["enemies"] = enemies
+            # Assign colors to enemies
+            # Assumes Hero is BLUE. We assign other colors to enemies.
+            colors = [Color.RED, Color.ORANGE, Color.WHITE]
+            enemies = []
+            for i, (name, data) in enumerate(enemy_data):
+                player = self.league.get_player_instance(name, colors[i], data)
+                enemies.append(player)
+                
+            # Update internal game configuration so super().reset() uses new enemies
+            self.config["enemies"] = enemies
         
         return super().reset(seed=seed, options=options)
 
