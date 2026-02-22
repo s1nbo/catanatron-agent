@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import optuna
 import gymnasium as gym
 from stable_baselines3 import PPO
 from sb3_contrib import MaskablePPO
@@ -43,22 +42,6 @@ class LeagueCallback(BaseCallback):
             
         return True
 
-def get_optuna_params():
-    print("Loading best hyperparameters from Optuna db...")
-    try:
-        # Load the study, assuming it exists in the current directory
-        study = optuna.load_study(
-            study_name="catanatron_ppo_optimization", 
-            storage="sqlite:///catanatron_optuna.db"
-        )
-        params = study.best_params
-        print(f"Best params found: {params}")
-        return params
-    except Exception as e:
-        print(f"Could not load optuna study: {e}. Using defaults.")
-        # If loading fails, return empty dict to fallback to defaults
-        return {}
-
 def train_selfplay():
     league = League()
     
@@ -73,17 +56,14 @@ def train_selfplay():
         vec_env_cls=SubprocVecEnv,
     )
     
-    # Load parameters
-    params = get_optuna_params()
-    
-    # Tuned hyperparameters from Optuna optimization
-    learning_rate = params.get("learning_rate", 0.0009674608384885506)
-    n_steps = params.get("n_steps", 1024)
-    batch_size = params.get("batch_size", 512)
-    ent_coef = params.get("ent_coef",3.641487559642055e-05)
-    gamma = params.get("gamma",  0.9996030561768017)
-    gae_lambda = params.get("gae_lambda", 0.9998258433696674)
-    clip_range = params.get("clip_range",  0.38705285305039916)
+    # Tuned hyperparameters from Optuna optimization (Hardcoded)
+    learning_rate = 0.0009674608384885506
+    n_steps = 1024
+    batch_size = 512
+    ent_coef = 3.641487559642055e-05
+    gamma = 0.9996030561768017
+    gae_lambda = 0.9998258433696674
+    clip_range = 0.38705285305039916
     
     model = MaskablePPO(
         "MlpPolicy",
