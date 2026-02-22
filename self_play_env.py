@@ -46,7 +46,12 @@ class SelfPlayEnv(CatanatronEnv):
         if terminated or truncated:
             winning_color = info.get("winning_color") 
             if winning_color is None and hasattr(self, "game"):
-                winning_color = getattr(self.game, "winning_color", None)
+                try:
+                    # In newer catanatron versions, winning_color is a method
+                    winning_color = self.game.winning_color()
+                except TypeError:
+                    # Fallback if it's a property
+                    winning_color = self.game.winning_color
 
             if winning_color:
                 # Determine winner name
