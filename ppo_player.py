@@ -18,11 +18,9 @@ class PPOPlayer(Player):
     def _load_resources(self):
         if self.model_path and os.path.exists(self.model_path):
             if self.model_path not in PPOPlayer._models:
-                print(f"Loading model logic from {self.model_path}")
-                # MaskablePPO.load usually loads architecture + weights.
-                # Hyperparameters like learning_rate are saved but not used during inference.
-                # The model architecture (n_steps, etc.) is preserved.
-                PPOPlayer._models[self.model_path] = MaskablePPO.load(self.model_path)
+                # Force CPU to avoid GPU OOM when scaling parallel environments
+                # Each subprocess needs its own copy, but CPU RAM is usually plentiful compared to VRAM
+                PPOPlayer._models[self.model_path] = MaskablePPO.load(self.model_path, device="cpu")
         
         if PPOPlayer._features_ordering is None:
             PPOPlayer._features_ordering = get_feature_ordering(4)

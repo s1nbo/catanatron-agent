@@ -101,13 +101,9 @@ def train_selfplay():
         clip_range=clip_range
     )
     
-    callback = LeagueCallback(league, check_freq=100000, model_dir="league_models")
+    callback = LeagueCallback(league, check_freq=5_000_000, model_dir="league_models")
     
-    print("Starting Self-Play Training with parameters:")
-    print(f"  Learning Rate: {learning_rate}")
-    print(f"  N Steps: {n_steps}")
-    print(f"  Batch Size: {batch_size}")
-    
+    print("Starting Self-Play Training with tuned parameters")
     model.learn(total_timesteps=10_000_000, callback=callback)
     
     model.save("final_selfplay_model")

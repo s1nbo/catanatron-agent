@@ -128,8 +128,8 @@ class League:
         
         if data["type"] == "random":
             return RandomPlayer(color)
-        elif data["type"] == "alphabeta":
-            return AlphaBetaPlayer(color)
+        #elif data["type"] == "alphabeta":
+        #    return AlphaBetaPlayer(color)
         elif data["type"] == "ppo":
             return PPOPlayer(color, model_path=data["path"])
         else:
