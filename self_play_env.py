@@ -13,8 +13,7 @@ class SelfPlayEnv(CatanatronEnv):
         self.league = League()
         self.hero_name = "current_training_agent" 
         
-        # Initial enemies placeholder to satisfy CatanatronEnv validation if any
-        # We use dummy RandomPlayers
+        # The reset() method will sample actual opponents from the league and update this config before each episode starts.
         config["enemies"] = [
             self.league.get_player_instance("random_red", Color.RED, {"type": "random"}),
             self.league.get_player_instance("random_red", Color.ORANGE, {"type": "random"}),
@@ -54,7 +53,7 @@ class SelfPlayEnv(CatanatronEnv):
                 winner_name = None
                 loser_names = []
                 
-                # Assume Hero is BLUE and enemies are RED, ORANGE, WHITE (standard Catanatron 4-player order)
+                # A We are BLUE
                 if winning_color == Color.BLUE:
                     winner_name = self.hero_name
                     loser_names = self.current_enemy_names
