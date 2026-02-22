@@ -92,7 +92,7 @@ If you need to stop the background process:
     ```bash
     ps aux | grep train_selfplay.py
     ```
-    You will see a line like `sinan 12345 ... python train_selfplay.py`. The number `12345` is the PID.
+    You will see a line like `x 12345 ... python train_selfplay.py`. The number `12345` is the PID.
 
 2.  **Kill the Process:**
     ```bash
