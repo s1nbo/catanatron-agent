@@ -150,17 +150,17 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
     
     model.learn(total_timesteps=total_timesteps, callback=callback, reset_num_timesteps=reset_timesteps)
     
-    model.save(f"final_selfplay_model_{run_name}")
+    model.save(f"final_model_{run_name}")
     env.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--steps", type=int, default=10_000_000, help="Total training steps")
+    parser.add_argument("--steps", type=int, default=200_000_000 , help="Total training steps")
     parser.add_argument("--freq", type=int, default=5_000_000, help="League update frequency")
     parser.add_argument("--envs", type=int, default=32, help="Number of parallel environments")
     parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
-    parser.add_argument("--name", type=str, default="run", help="Unique name for this training run (e.g. 'run_A', 'v1')")
-    parser.add_argument("--size", type=int, default=10, help="Max number of past bots to keep in the league")
+    parser.add_argument("--name", type=str, default="v1", help="Unique name for this training run (e.g. 'run_A', 'v1')")
+    parser.add_argument("--size", type=int, default=32, help="Max number of past bots to keep in the league")
     args = parser.parse_args()
     
     train_selfplay(args.steps, args.freq, args.envs, args.load, args.name, args.size)
