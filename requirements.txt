@@ -6,4 +6,5 @@ sb3-contrib
 optuna
 wandb
 tensorboard
+setuptools==81.0.0
 
