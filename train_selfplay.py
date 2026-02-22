@@ -21,12 +21,13 @@ def mask_fn(env):
     return mask
 
 class LeagueCallback(BaseCallback):
-    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1):
+    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1, max_league_size=50):
         super().__init__(verbose)
         self.league = league
         self.check_freq = check_freq
         self.model_dir = model_dir
         self.run_name = run_name
+        self.max_league_size = max_league_size
         os.makedirs(self.model_dir, exist_ok=True)
         
         # Determine starting generation based on existing files for this run_name
@@ -62,13 +63,18 @@ class LeagueCallback(BaseCallback):
                 print(f"Gen {self.generation} saved: {model_path} (Global Timesteps: {self.num_timesteps})")
             
             self.league.add_player(model_name, "ppo", model_path)
+            
+            # Prune old models if league gets too big (keep at least 5)
+            if self.max_league_size > 0:
+                 self.league.prune_league(self.max_league_size)
+
             self.generation += 1
             
         return True
 
 
 
-def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name="default"):
+def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name="default", max_league_size=50):
     league = League()
     
     # Create env
@@ -136,7 +142,7 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
     print(f"Update Frequency: Every {check_freq} timesteps ({check_freq_calls} callback calls)")
 
     # Define the callback for saving snapshots and updating the league
-    callback = LeagueCallback(league, check_freq_calls, "league_models", run_name=run_name)
+    callback = LeagueCallback(league, check_freq_calls, "league_models", run_name=run_name, max_league_size=max_league_size)
     
     # If loading a model, we likely want to continue training without resetting timesteps
     # to preserve learning rate schedules and TensorBoard x-axis continuity.
@@ -154,6 +160,7 @@ if __name__ == "__main__":
     parser.add_argument("--envs", type=int, default=32, help="Number of parallel environments")
     parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
     parser.add_argument("--name", type=str, default="run", help="Unique name for this training run (e.g. 'run_A', 'v1')")
+    parser.add_argument("--size", type=int, default=10, help="Max number of past bots to keep in the league")
     args = parser.parse_args()
     
-    train_selfplay(args.steps, args.freq, args.envs, args.load, args.name)
+    train_selfplay(args.steps, args.freq, args.envs, args.load, args.name, args.size)

@@ -59,6 +59,73 @@ class League:
                 # Write back
                 with open(self.league_file, "w") as f:
                     json.dump(self.players, f, indent=4)
+    
+    def prune_league(self, max_size: int = 50):
+        """
+        Removes oldest PPO bots from the league to keep size manageable.
+        Always preserves non-PPO bots (like random, alphabeta).
+        Deletes the model files from disk.
+        """
+        with self.lock:
+            # Reload
+            if os.path.exists(self.league_file):
+                with open(self.league_file, "r") as f:
+                    self.players = json.load(f)
+            
+            # Separate permanent agents from prune-able ones
+            ppo_agents = []
+            others = {}
+            
+            for name, data in self.players.items():
+                if data.get("type") == "ppo":
+                    ppo_agents.append((name, data))
+                else:
+                    others[name] = data
+
+            # If we don't need to prune, exit
+            if len(ppo_agents) <= max_size:
+                return
+
+            # Sort ppo agents by ELO (ascending) so we remove the weakest ones
+            # Secondary sort by generation (older first) to break ties or if ELO is same
+            def sort_key(item):
+                name, data = item
+                elo = data.get("elo", 1000)
+                try:
+                    gen = int(name.split('_')[-1])
+                except (ValueError, IndexError):
+                    gen = 0
+                return (elo, gen)
+
+            # Sort ascending: lowest ELO first
+            ppo_agents.sort(key=sort_key)
+
+            # Determine how many to remove
+            num_to_remove = len(ppo_agents) - max_size
+            to_remove = ppo_agents[:num_to_remove]
+            to_keep = ppo_agents[num_to_remove:]
+            
+            print(f"[League] Pruning {len(to_remove)} weakest agents...")
+
+            # Reconstruct the players dict
+            self.players = others
+            for name, data in to_keep:
+                self.players[name] = data
+            
+            # Delete files and clean up
+            for name, data in to_remove:
+                path = data.get("path")
+                if path and os.path.exists(path):
+                    try:
+                        os.remove(path)
+                        print(f"Deleted properties for {name} (ELO {data.get('elo'):.1f}) and file: {path}")
+                    except OSError as e:
+                        print(f"Error deleting {path}: {e}")
+            
+            # Save
+            with open(self.league_file, "w") as f:
+                json.dump(self.players, f, indent=4)
+
 
     def update_elo(self, winner: str, losers: List[str]):
         with self.lock:

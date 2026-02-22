@@ -4,47 +4,5 @@
         "path": null,
         "elo": 1000,
         "games": 0
-    },
-    "gen_1": {
-        "type": "ppo",
-        "path": "league_models/gen_1.zip",
-        "elo": 1000.0,
-        "games": 0
-    },
-    "test_gen_1": {
-        "type": "ppo",
-        "path": "league_models/test_gen_1.zip",
-        "elo": 1000.0,
-        "games": 0
-    },
-    "test_gen_2": {
-        "type": "ppo",
-        "path": "league_models/test_gen_2.zip",
-        "elo": 1000.0,
-        "games": 0
-    },
-    "test_gen_3": {
-        "type": "ppo",
-        "path": "league_models/test_gen_3.zip",
-        "elo": 1000.0,
-        "games": 0
-    },
-    "test_gen_4": {
-        "type": "ppo",
-        "path": "league_models/test_gen_4.zip",
-        "elo": 1000.0,
-        "games": 0
-    },
-    "test_gen_5": {
-        "type": "ppo",
-        "path": "league_models/test_gen_5.zip",
-        "elo": 1000.0,
-        "games": 0
-    },
-    "test_gen_6": {
-        "type": "ppo",
-        "path": "league_models/test_gen_6.zip",
-        "elo": 1000.0,
-        "games": 0
     }
 }
