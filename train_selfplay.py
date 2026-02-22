@@ -7,6 +7,8 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.env_util import make_vec_env
+import argparse
+import glob
 
 # Local imports
 from league import League
@@ -19,35 +21,57 @@ def mask_fn(env):
     return mask
 
 class LeagueCallback(BaseCallback):
-    def __init__(self, league, check_freq: int, model_dir: str, verbose=1):
+    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1):
         super().__init__(verbose)
         self.league = league
         self.check_freq = check_freq
         self.model_dir = model_dir
+        self.run_name = run_name
         os.makedirs(self.model_dir, exist_ok=True)
-        self.generation = 1
+        
+        # Determine starting generation based on existing files for this run_name
+        existing_models = glob.glob(os.path.join(model_dir, f"{run_name}_gen_*.zip"))
+        max_gen = 0
+        for m in existing_models:
+            try:
+                base = os.path.basename(m)
+                # Remove extension
+                name_no_ext = os.path.splitext(base)[0]
+                # split by _ and take last part
+                gen_part = name_no_ext.split('_')[-1]
+                max_gen = max(max_gen, int(gen_part))
+            except ValueError:
+                continue
+        
+        self.generation = max_gen + 1
+        if verbose > 0:
+            print(f"LeagueCallback initialized. Check freq: {self.check_freq} steps (n_calls). Next Generation ID: {self.generation}")
 
     def _on_step(self) -> bool:
+        # Check if enough steps have passed to save a new model
+        # Note: self.n_calls increments by 1 for every env.step() in the VecEnv.
+        # But commonly we want to check based on total timesteps.
+        # However, SB3 callbacks use n_calls.
         if self.n_calls % self.check_freq == 0:
             # Save current model
-            model_name = f"gen_{self.generation}"
+            model_name = f"{self.run_name}_gen_{self.generation}"
             model_path = os.path.join(self.model_dir, f"{model_name}.zip")
             self.model.save(model_path)
             
             if self.verbose > 0:
-                print(f"Generation {self.generation} saved to {model_path}")
+                print(f"Gen {self.generation} saved: {model_path} (Global Timesteps: {self.num_timesteps})")
             
             self.league.add_player(model_name, "ppo", model_path)
             self.generation += 1
             
         return True
 
-def train_selfplay():
+
+
+def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name="default"):
     league = League()
     
     # Create env
-    n_envs = 32
-    
     env = make_vec_env(
         SelfPlayEnv,
         n_envs=n_envs,
@@ -64,29 +88,72 @@ def train_selfplay():
     gamma = 0.9996030561768017
     gae_lambda = 0.9998258433696674
     clip_range = 0.38705285305039916
+
+    if load_path and os.path.exists(load_path):
+        print(f"Loading existing model from {load_path}...")
+        # Note: We need to pass tensorboard_log etc. if we want to continue logging properly
+        # However, .load() creates a new object. We should update its attributes if needed.
+        # But 'learning_rate' etc are usually baked in.
+        # But Stable Baselines3 saves hyperparams. MaskablePPO.load should work fine.
+        model = MaskablePPO.load(
+            load_path, 
+            env=env,
+            device="cuda",
+            tensorboard_log="runs/selfplay",
+            verbose=1,
+            custom_objects={
+                "learning_rate": learning_rate,
+                "n_steps": n_steps,
+                "batch_size": batch_size,
+                "ent_coef": ent_coef,
+                "gamma": gamma,
+                "gae_lambda": gae_lambda,
+                "clip_range": clip_range
+            }
+        )
+    else:
+        print("Creating new model...")
+        model = MaskablePPO(
+            "MlpPolicy",
+            env,
+            verbose=1,
+            tensorboard_log="runs/selfplay",
+            device="cuda",
+            learning_rate=learning_rate,
+            n_steps=n_steps,
+            batch_size=batch_size,
+            ent_coef=ent_coef,
+            gamma=gamma,
+            gae_lambda=gae_lambda,
+            clip_range=clip_range
+        )
     
-    model = MaskablePPO(
-        "MlpPolicy",
-        env,
-        verbose=1,
-        tensorboard_log="runs/selfplay",
-        device="cuda",
-        learning_rate=learning_rate,
-        n_steps=n_steps,
-        batch_size=batch_size,
-        ent_coef=ent_coef,
-        gamma=gamma,
-        gae_lambda=gae_lambda,
-        clip_range=clip_range
-    )
+    print(f"Starting Self-Play Training for {total_timesteps} steps...")
+
+    # Convert check_freq (timesteps) to n_calls (timesteps // n_envs)
+    # Ensure it's at least 1
+    check_freq_calls = max(1, check_freq // n_envs)
+    print(f"Update Frequency: Every {check_freq} timesteps ({check_freq_calls} callback calls)")
+
+    # Define the callback for saving snapshots and updating the league
+    callback = LeagueCallback(league, check_freq_calls, "league_models", run_name=run_name)
     
-    callback = LeagueCallback(league, check_freq=5_000_000, model_dir="league_models")
+    # If loading a model, we likely want to continue training without resetting timesteps
+    # to preserve learning rate schedules and TensorBoard x-axis continuity.
+    reset_timesteps = True if load_path is None else False
     
-    print("Starting Self-Play Training with tuned parameters")
-    model.learn(total_timesteps=10_000_000, callback=callback)
+    model.learn(total_timesteps=total_timesteps, callback=callback, reset_num_timesteps=reset_timesteps)
     
-    model.save("final_selfplay_model")
+    model.save(f"final_selfplay_model_{run_name}")
     env.close()
 
 if __name__ == "__main__":
-    train_selfplay()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--steps", type=int, default=10_000_000, help="Total training steps")
+    parser.add_argument("--freq", type=int, default=5_000_000, help="League update frequency")
+    parser.add_argument("--envs", type=int, default=32, help="Number of parallel environments")
+    parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
+    parser.add_argument("--name", type=str, default="run", help="Unique name for this training run (e.g. 'run_A', 'v1')")
+    args = parser.parse_args()
+    
+    train_selfplay(args.steps, args.freq, args.envs, args.load, args.name)
