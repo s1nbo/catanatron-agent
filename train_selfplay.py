@@ -63,8 +63,7 @@ def train_selfplay():
     league = League()
     
     # Create env
-    # Use 64 processes or less depending on machine
-    n_envs = 64
+    n_envs = 32
     
     env = make_vec_env(
         SelfPlayEnv,
