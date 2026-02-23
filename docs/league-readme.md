@@ -43,24 +43,11 @@ This folder contains a complete self-play league system for training the Catanat
 
 ## 🚀 How to Run
 
-### 1. Start Training
-Run the training script using your virtual environment's Python. This will initialize the league with a `random` baseline and start training your agent.
-
-```bash
-./venv/bin/python train_selfplay.py
+### Test
 ```
-
-### 2. Monitor Progress
-*   **ELO Ratings:** Check `league.json` to see the ELO ratings of your agent generations growing.
-*   **TensorBoard:** Watch win rates and rewards in real-time.
-    ```bash
-    ./venv/bin/tensorboard --logdir runs/selfplay
-    ```
-
-### 3. Stop & Resume
-Since the league is persistent (`league.json`), you can stop the script at any time (Ctrl+C). When you restart `train_selfplay.py`, it will continue adding new generations to the existing league, preserving the history of past agents.
-
-### 4. Cleaning Up
-If you want to restart the league from scratch:
-1.  Delete `league.json`
-2.  Delete the `league_models/` directory.
+./venv/bin/python train_selfplay.py --steps 10000 --freq 2000 --envs 16 --name smoketest
+```
+### Real
+```
+./venv/bin/python train_selfplay.py --name real_run
+```

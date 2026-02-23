@@ -1,6 +1,6 @@
 """
-Quick test for the ELO system using only random bots.
-No model training required.
+Test for the ELO system using random, alphabeta, and PPO bots.
+Uses the pre-trained PPO agents in start/.
 """
 import os
 import json
@@ -11,8 +11,14 @@ from league import League
 
 # --- Config ---
 TEST_LEAGUE_FILE = "league_test.json"
-NUM_GAMES = 20
+NUM_GAMES = 10
 COLORS = [Color.RED, Color.BLUE, Color.ORANGE, Color.WHITE]
+
+PPO_AGENTS = {
+    "ppo_catanatron_01": "start/ppo_catanatron_01.zip",
+    "ppo_catanatron_02": "start/ppo_catanatron_02.zip",
+    "ppo_catanatron_03": "start/ppo_catanatron_03.zip",
+}
 
 # Clean up any previous test file
 if os.path.exists(TEST_LEAGUE_FILE):
@@ -27,9 +33,14 @@ league = League(league_file=TEST_LEAGUE_FILE)
 for name in ["random_blue", "random_orange", "random_white"]:
     league.add_player(name, "random")
 
-# Add two alphabeta bots with different depths
-league.players["alphabeta_d1"] = {"type": "alphabeta", "depth": 1, "path": None, "elo": 1000, "games": 0}
-league.players["alphabeta_d2"] = {"type": "alphabeta", "depth": 2, "path": None, "elo": 1000, "games": 0}
+# Add alphabeta bots with different depths
+#league.players["alphabeta_d1"] = {"type": "alphabeta", "depth": 1, "path": None, "elo": 1000, "games": 0}
+#league.players["alphabeta_d2"] = {"type": "alphabeta", "depth": 2, "path": None, "elo": 1000, "games": 0}
+
+# Add pre-trained PPO agents
+for name, path in PPO_AGENTS.items():
+    league.players[name] = {"type": "ppo", "path": path, "elo": 1000, "games": 0}
+
 league.save_league()
 
 print("Initial league state:")

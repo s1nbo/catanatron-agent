@@ -21,7 +21,7 @@ def mask_fn(env):
     return mask
 
 class LeagueCallback(BaseCallback):
-    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1, max_league_size=50):
+    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1, max_league_size=32):
         super().__init__(verbose)
         self.league = league
         self.check_freq = check_freq
@@ -61,8 +61,13 @@ class LeagueCallback(BaseCallback):
             
             if self.verbose > 0:
                 print(f"Gen {self.generation} saved: {model_path} (Global Timesteps: {self.num_timesteps})")
-            
-            self.league.add_player(model_name, "ppo", model_path)
+
+            # Inherit the current training agent's earned ELO so the snapshot
+            # starts from an honest prior rather than the (potentially inflated) league mean.
+            training_agent_data = self.league.players.get("current_training_agent")
+            inherited_elo = training_agent_data["elo"] if training_agent_data else None
+
+            self.league.add_player(model_name, "ppo", model_path, initial_elo=inherited_elo)
             
             # Prune old models if league gets too big (keep at least 5)
             if self.max_league_size > 0:
@@ -74,8 +79,9 @@ class LeagueCallback(BaseCallback):
 
 
 
-def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name="default", max_league_size=50):
+def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name="default" ):
     league = League()
+    max_league_size=32
     
     # Create env
     env = make_vec_env(
@@ -160,7 +166,6 @@ if __name__ == "__main__":
     parser.add_argument("--envs", type=int, default=32, help="Number of parallel environments")
     parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
     parser.add_argument("--name", type=str, default="v1", help="Unique name for this training run (e.g. 'run_A', 'v1')")
-    parser.add_argument("--size", type=int, default=32, help="Max number of past bots to keep in the league")
     args = parser.parse_args()
     
-    train_selfplay(args.steps, args.freq, args.envs, args.load, args.name, args.size)
+    train_selfplay(args.steps, args.freq, args.envs, args.load, args.name)

@@ -6,10 +6,9 @@ from typing import List, Dict, Tuple, Optional
 from filelock import FileLock
 from catanatron import Player, Game
 from catanatron.models.player import Color, RandomPlayer
-# from catanatron.players.minimax import AlphaBetaPlayer # Temporarily disabled
-from catanatron.players.minimax import AlphaBetaPlayer  # Used for testing
-# from sb3_contrib import MaskablePPO  # Commented out for ELO system testing
-# from ppo_player import PPOPlayer  # Commented out for ELO system testing
+
+# from catanatron.players.minimax import AlphaBetaPlayer  # Used for testing
+from ppo_player import PPOPlayer
 
 LEAGUE_FILE = "league.json"
 LOCK_FILE = "league.json.lock"
@@ -40,7 +39,7 @@ class League:
             with open(self.league_file, "w") as f:
                 json.dump(self.players, f, indent=4)
 
-    def add_player(self, name: str, player_type: str, path: Optional[str] = None):
+    def add_player(self, name: str, player_type: str, path: Optional[str] = None, initial_elo: Optional[float] = None):
         with self.lock:
             # Reload to get latest state before writing
             if os.path.exists(self.league_file):
@@ -48,9 +47,12 @@ class League:
                      self.players = json.load(f)
 
             if name not in self.players:
-                # Start with average ELO of current league or 1000
-                elos = [p["elo"] for p in self.players.values()]
-                elo = np.mean(elos) if elos else 1000
+                if initial_elo is not None:
+                    elo = initial_elo
+                else:
+                    # Fall back to league mean or 1000
+                    elos = [p["elo"] for p in self.players.values()]
+                    elo = np.mean(elos) if elos else 1000
                 self.players[name] = {
                     "type": player_type,
                     "path": path,
@@ -135,13 +137,20 @@ class League:
                 with open(self.league_file, "r") as f:
                      self.players = json.load(f)
 
-            K = 32
+            K = 1
+
+            # Ensure current_training_agent exists in the league so its ELO is tracked
+            for participant in [winner] + losers:
+                if participant == "current_training_agent" and participant not in self.players:
+                    elos = [p["elo"] for p in self.players.values()]
+                    self.players[participant] = {
+                        "type": "training",
+                        "path": None,
+                        "elo": float(np.mean(elos)) if elos else 1000.0,
+                        "games": 0,
+                    }
+
             winner_data = self.players.get(winner)
-            # If winner is not in league (e.g. current training agent), we skip updating its ELO 
-            # but still update losers IF they are in league.
-            
-            # Actually, usually we track the training agent as a temporary entry or just don't update it yet.
-            # But the losers must be updated.
             
             for loser in losers:
                 loser_data = self.players.get(loser)
@@ -151,7 +160,7 @@ class League:
                 # Better: assume winner has ELO equal to average of losers + 100?
                 # Or just fetch if available.
                 
-                winner_elo = winner_data["elo"] if winner_data else 1200 # Default if training agent unknown
+                winner_elo = winner_data["elo"] if winner_data else 1000
                 loser_elo = loser_data["elo"]
 
                 # Expected win prob for winner
@@ -196,11 +205,11 @@ class League:
         
         if data["type"] == "random":
             return RandomPlayer(color)
-        elif data["type"] == "alphabeta":
+        # elif data["type"] == "alphabeta":
             depth = data.get("depth", 2)
-            return AlphaBetaPlayer(color, depth=depth)
-        # elif data["type"] == "ppo":  # Commented out for ELO system testing
-        #     return PPOPlayer(color, model_path=data["path"])
+            # return AlphaBetaPlayer(color, depth=depth)
+        elif data["type"] == "ppo":
+            return PPOPlayer(color, model_path=data["path"])
         else:
             return RandomPlayer(color)
 
