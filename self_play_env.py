@@ -44,9 +44,9 @@ class SelfPlayEnv(CatanatronEnv):
         obs, reward, terminated, truncated, info = super().step(action)
         
         if terminated or truncated:
-            winning_color = info.get("winning_color") 
-            if winning_color is None and hasattr(self, "game"):
-                winning_color = getattr(self.game, "winning_color", None)
+            winning_color = info.get("winning_color")
+            if winning_color is None and hasattr(self, "game") and callable(getattr(self.game, "winning_color", None)):
+                winning_color = self.game.winning_color()
 
             if winning_color:
                 # Determine winner name
