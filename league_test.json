@@ -1,0 +1,40 @@
+{
+    "random_red": {
+        "type": "random",
+        "path": null,
+        "elo": 874.5498401171089,
+        "games": 14
+    },
+    "random_blue": {
+        "type": "random",
+        "path": null,
+        "elo": 875.2470391807921,
+        "games": 14
+    },
+    "random_orange": {
+        "type": "random",
+        "path": null,
+        "elo": 940.3031798471848,
+        "games": 14
+    },
+    "random_white": {
+        "type": "random",
+        "path": null,
+        "elo": 901.8645842747037,
+        "games": 11
+    },
+    "alphabeta_d1": {
+        "type": "alphabeta",
+        "depth": 1,
+        "path": null,
+        "elo": 1151.4246452615434,
+        "games": 27
+    },
+    "alphabeta_d2": {
+        "type": "alphabeta",
+        "depth": 2,
+        "path": null,
+        "elo": 1256.610711318667,
+        "games": 40
+    }
+}

@@ -4,11 +4,5 @@
         "path": null,
         "elo": 1000,
         "games": 0
-    },
-    "v1_gen_1": {
-        "type": "ppo",
-        "path": "league_models/v1_gen_1.zip",
-        "elo": 1000.0,
-        "games": 0
     }
 }

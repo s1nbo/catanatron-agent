@@ -7,8 +7,9 @@ from filelock import FileLock
 from catanatron import Player, Game
 from catanatron.models.player import Color, RandomPlayer
 # from catanatron.players.minimax import AlphaBetaPlayer # Temporarily disabled
-from sb3_contrib import MaskablePPO
-from ppo_player import PPOPlayer
+from catanatron.players.minimax import AlphaBetaPlayer  # Used for testing
+# from sb3_contrib import MaskablePPO  # Commented out for ELO system testing
+# from ppo_player import PPOPlayer  # Commented out for ELO system testing
 
 LEAGUE_FILE = "league.json"
 LOCK_FILE = "league.json.lock"
@@ -195,10 +196,11 @@ class League:
         
         if data["type"] == "random":
             return RandomPlayer(color)
-        #elif data["type"] == "alphabeta":
-        #    return AlphaBetaPlayer(color)
-        elif data["type"] == "ppo":
-            return PPOPlayer(color, model_path=data["path"])
+        elif data["type"] == "alphabeta":
+            depth = data.get("depth", 2)
+            return AlphaBetaPlayer(color, depth=depth)
+        # elif data["type"] == "ppo":  # Commented out for ELO system testing
+        #     return PPOPlayer(color, model_path=data["path"])
         else:
             return RandomPlayer(color)
 
