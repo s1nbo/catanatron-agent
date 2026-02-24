@@ -164,8 +164,8 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=200_000_000 , help="Total training steps")
     parser.add_argument("--freq", type=int, default=5_000_000, help="League update frequency")
     parser.add_argument("--envs", type=int, default=32, help="Number of parallel environments")
-    parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
-    parser.add_argument("--name", type=str, default="v1", help="Unique name for this training run (e.g. 'run_A', 'v1')")
+    parser.add_argument("--load", type=str, default="league_models/v1_gen_26.zip", help="Path to model .zip to resume from")
+    parser.add_argument("--name", type=str, default="v2", help="Unique name for this training run (e.g. 'run_A', 'v1')")
     args = parser.parse_args()
     
     train_selfplay(args.steps, args.freq, args.envs, args.load, args.name)
