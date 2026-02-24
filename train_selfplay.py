@@ -3,12 +3,14 @@ import numpy as np
 import gymnasium as gym
 from stable_baselines3 import PPO
 from sb3_contrib import MaskablePPO
-from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.callbacks import BaseCallback, CallbackList
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.env_util import make_vec_env
 import argparse
 import glob
+import wandb
+from wandb.integration.sb3 import WandbCallback
 
 # Local imports
 from league import League
@@ -21,7 +23,7 @@ def mask_fn(env):
     return mask
 
 class LeagueCallback(BaseCallback):
-    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1, max_league_size=16):
+    def __init__(self, league, check_freq: int, model_dir: str, run_name: str = "default", verbose=1, max_league_size=32):
         super().__init__(verbose)
         self.league = league
         self.check_freq = check_freq
@@ -49,33 +51,79 @@ class LeagueCallback(BaseCallback):
             print(f"LeagueCallback initialized. Check freq: {self.check_freq} steps (n_calls). Next Generation ID: {self.generation}")
 
     def _on_step(self) -> bool:
-        # Check if enough steps have passed to save a new model
-        # Note: self.n_calls increments by 1 for every env.step() in the VecEnv.
-        # But commonly we want to check based on total timesteps.
-        # However, SB3 callbacks use n_calls.
         if self.n_calls % self.check_freq == 0:
             # Save current model
             model_name = f"{self.run_name}_gen_{self.generation}"
             model_path = os.path.join(self.model_dir, f"{model_name}.zip")
             self.model.save(model_path)
-            
+
             if self.verbose > 0:
                 print(f"Gen {self.generation} saved: {model_path} (Global Timesteps: {self.num_timesteps})")
-            
-            self.league.add_player(model_name, "ppo", model_path)
-            
-            # Prune old models if league gets too big (keep at least 5)
+
+            # Inherit the current training agent's earned ELO so the snapshot
+            # starts from an honest prior rather than the (potentially inflated) league mean.
+            training_agent_data = self.league.players.get("current_training_agent")
+            inherited_elo = training_agent_data["elo"] if training_agent_data else None
+
+            self.league.add_player(model_name, "ppo", model_path, initial_elo=inherited_elo)
+
+            # Prune old models if league gets too big
             if self.max_league_size > 0:
-                 self.league.prune_league(self.max_league_size)
+                self.league.prune_league(self.max_league_size)
+
+            # --- wandb: log generation + league snapshot ---
+            league_elos = {
+                name: data["elo"]
+                for name, data in self.league.players.items()
+            }
+            ppo_elos = [
+                data["elo"]
+                for data in self.league.players.values()
+                if data.get("type") == "ppo"
+            ]
+            log_data = {
+                "league/generation": self.generation,
+                "league/training_agent_elo": inherited_elo or 0,
+                "league/num_agents": len(self.league.players),
+                "league/ppo_mean_elo": float(np.mean(ppo_elos)) if ppo_elos else 0,
+                "league/ppo_max_elo": float(np.max(ppo_elos)) if ppo_elos else 0,
+            }
+            # Log every individual agent's ELO under league/elo/<name>
+            for name, elo in league_elos.items():
+                log_data[f"league/elo/{name}"] = elo
+            wandb.log(log_data, step=self.num_timesteps)
 
             self.generation += 1
-            
+
+        # Log training-agent ELO every step so it trends smoothly
+        training_data = self.league.players.get("current_training_agent")
+        if training_data:
+            wandb.log(
+                {"league/training_agent_elo": training_data["elo"]},
+                step=self.num_timesteps,
+            )
+
         return True
 
 
 
-def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name="default", max_league_size=50):
+def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name="default"):
+    wandb.init(
+        project="catanatron-selfplay",
+        name=run_name,
+        config={
+            "total_timesteps": total_timesteps,
+            "check_freq": check_freq,
+            "n_envs": n_envs,
+            "load_path": load_path,
+            "run_name": run_name,
+        },
+        sync_tensorboard=True,   # auto-sync SB3 TensorBoard scalars
+        resume="allow",
+    )
+
     league = League()
+    max_league_size = 32
     
     # Create env
     env = make_vec_env(
@@ -137,30 +185,34 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
     print(f"Starting Self-Play Training for {total_timesteps} steps...")
 
     # Convert check_freq (timesteps) to n_calls (timesteps // n_envs)
-    # Ensure it's at least 1
     check_freq_calls = max(1, check_freq // n_envs)
     print(f"Update Frequency: Every {check_freq} timesteps ({check_freq_calls} callback calls)")
 
-    # Define the callback for saving snapshots and updating the league
-    callback = LeagueCallback(league, check_freq_calls, "league_models", run_name=run_name, max_league_size=max_league_size)
-    
-    # If loading a model, we likely want to continue training without resetting timesteps
-    # to preserve learning rate schedules and TensorBoard x-axis continuity.
-    reset_timesteps = True if load_path is None else False
-    
+    league_cb = LeagueCallback(
+        league, check_freq_calls, "league_models",
+        run_name=run_name, max_league_size=max_league_size,
+    )
+    wandb_cb = WandbCallback(
+        gradient_save_freq=check_freq_calls,
+        verbose=0,
+    )
+    callback = CallbackList([league_cb, wandb_cb])
+
+    reset_timesteps = load_path is None
+
     model.learn(total_timesteps=total_timesteps, callback=callback, reset_num_timesteps=reset_timesteps)
-    
+
     model.save(f"final_model_{run_name}")
     env.close()
+    wandb.finish()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--steps", type=int, default=200_000_000 , help="Total training steps")
+    parser.add_argument("--steps", type=int, default=500_000_000 , help="Total training steps")
     parser.add_argument("--freq", type=int, default=5_000_000, help="League update frequency")
     parser.add_argument("--envs", type=int, default=32, help="Number of parallel environments")
-    parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
-    parser.add_argument("--name", type=str, default="v1", help="Unique name for this training run (e.g. 'run_A', 'v1')")
-    parser.add_argument("--size", type=int, default=32, help="Max number of past bots to keep in the league")
+    parser.add_argument("--load", type=str, default="league_models/v2_gen_9.zip", help="Path to model .zip to resume from")
+    parser.add_argument("--name", type=str, default="v3", help="Unique name for this training run (e.g. 'run_A', 'v1')")
     args = parser.parse_args()
     
-    train_selfplay(args.steps, args.freq, args.envs, args.load, args.name, args.size)
+    train_selfplay(args.steps, args.freq, args.envs, args.load, args.name)

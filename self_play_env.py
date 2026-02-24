@@ -27,7 +27,13 @@ class SelfPlayEnv(CatanatronEnv):
         super().__init__(config=config, **kwargs)
 
     def reset(self, seed=None, options=None):
-        self.games_played += 1
+        # Sample new enemies, weighted by ELO proximity to the training agent
+        hero_elo = None
+        hero_data = self.league.players.get(self.hero_name)
+        if hero_data:
+            hero_elo = hero_data.get("elo")
+        enemy_data = self.league.sample_opponents(3, hero_elo=hero_elo)
+        self.current_enemy_names = [name for name, _ in enemy_data]
         
         # Sample new enemies only every N games, or if not yet set
         if not hasattr(self, "current_enemy_names") or self.games_played % self.opponent_refresh_rate == 0:
@@ -51,14 +57,9 @@ class SelfPlayEnv(CatanatronEnv):
         obs, reward, terminated, truncated, info = super().step(action)
         
         if terminated or truncated:
-            winning_color = info.get("winning_color") 
-            if winning_color is None and hasattr(self, "game"):
-                try:
-                    # In newer catanatron versions, winning_color is a method
-                    winning_color = self.game.winning_color()
-                except TypeError:
-                    # Fallback if it's a property
-                    winning_color = self.game.winning_color
+            winning_color = info.get("winning_color")
+            if winning_color is None and hasattr(self, "game") and callable(getattr(self.game, "winning_color", None)):
+                winning_color = self.game.winning_color()
 
             if winning_color:
                 # Determine winner name

@@ -18,8 +18,6 @@ class PPOPlayer(Player):
     def _load_resources(self):
         if self.model_path and os.path.exists(self.model_path):
             if self.model_path not in PPOPlayer._models:
-                # Reverting to default device (likely CUDA if available)
-                # print(f"Loading model logic from {self.model_path}")
                 PPOPlayer._models[self.model_path] = MaskablePPO.load(self.model_path)
         
         if PPOPlayer._features_ordering is None:

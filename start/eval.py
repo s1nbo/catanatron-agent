@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from typing import List, Tuple
 from sb3_contrib import MaskablePPO
@@ -6,11 +7,19 @@ from catanatron.cli import register_cli_player
 from catanatron.features import create_sample, get_feature_ordering
 from catanatron.gym.envs.catanatron_env import to_action_space, ACTION_SPACE_SIZE
 
+# League models directory (one level up from start/)
+LEAGUE_MODELS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "league_models")
+
+def league_model(name: str) -> str:
+    """Return absolute path for a model in league_models/."""
+    filename = name if name.endswith(".zip") else name + ".zip"
+    return os.path.join(LEAGUE_MODELS_DIR, filename)
+
 class MyBot(Player):
     _models = {}
     _features_ordering = None
 
-    def __init__(self, color, model_path="ppo_catanatron_02.zip"):
+    def __init__(self, color, model_path=None):
         super().__init__(color)
         self.model_path = model_path
         self._load_resources()
@@ -71,10 +80,13 @@ def create_bot_class(model_path, name):
     Bot.__name__ = name
     return Bot
 
-Bot01 = create_bot_class("ppo_catanatron_01.zip", "Bot01")
-Bot02 = create_bot_class("ppo_catanatron_02.zip", "Bot02")
-Bot03 = create_bot_class("ppo_catanatron_03.zip", "Bot03")
+# --- Configure which league models to use here ---
+Bot01 = create_bot_class(league_model("v2_gen_9"),         "Bot01_v2_gen_9")
+Bot02 = create_bot_class(league_model("v1_gen_25"),        "Bot02_v1_gen_26")
+Bot03 = create_bot_class(league_model("real_run_gen_14"),  "Bot03_real_run_gen_14")
+Bot04 = create_bot_class(league_model("v1_gen_21"),        "Bot04_v1_gen_21")
 
-register_cli_player("1", Bot02)
-register_cli_player("2", Bot01)
+register_cli_player("1", Bot01)
+register_cli_player("2", Bot02)
 register_cli_player("3", Bot03)
+register_cli_player("4", Bot04)
