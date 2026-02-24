@@ -2,8 +2,8 @@
     "random_red": {
         "type": "random",
         "path": null,
-        "elo": 2147.6576399051824,
-        "games": 415193
+        "elo": 1000,
+        "games": 0
     },
     "alphabeta_d2": {
         "type": "alphabeta",
@@ -22,8 +22,8 @@
     "current_training_agent": {
         "type": "training",
         "path": null,
-        "elo": 2615.661683349075,
-        "games": 5686306
+        "elo": 1000,
+        "games": 0
     },
     "real_run_gen_7": {
         "type": "ppo",
