@@ -1,5 +1,6 @@
 {
-    "random_v0": {
+    "random_red": {
+        "type": "random",
         "path": null,
         "elo": 1938.4430031144384,
         "games": 378561
