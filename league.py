@@ -225,7 +225,7 @@ class League:
         if data["type"] == "random":
             return RandomPlayer(color)
         elif data["type"] == "alphabeta":
-            depth = data.get("depth", 2)
+            depth = data.get("depth", 2) # default to 2 if not specified
             return AlphaBetaPlayer(color, depth=depth)
         elif data["type"] == "ppo":
             return PPOPlayer(color, model_path=data["path"])
