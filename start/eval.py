@@ -3,6 +3,7 @@ import numpy as np
 from typing import List, Tuple
 from sb3_contrib import MaskablePPO
 from catanatron import Player, Game, Action
+from catanatron.players.minimax import AlphaBetaPlayer
 from catanatron.cli import register_cli_player
 from catanatron.features import create_sample, get_feature_ordering
 from catanatron.gym.envs.catanatron_env import to_action_space, ACTION_SPACE_SIZE
@@ -86,7 +87,12 @@ Bot02 = create_bot_class(league_model("v1_gen_25"),        "Bot02_v1_gen_26")
 Bot03 = create_bot_class(league_model("real_run_gen_14"),  "Bot03_real_run_gen_14")
 Bot04 = create_bot_class(league_model("v1_gen_21"),        "Bot04_v1_gen_21")
 
+class D1(AlphaBetaPlayer):
+    def __init__(self, color):
+        super().__init__(color, depth=1, prunning=True)
+
 register_cli_player("1", Bot01)
 register_cli_player("2", Bot02)
 register_cli_player("3", Bot03)
 register_cli_player("4", Bot04)
+register_cli_player("d1", D1)
