@@ -8,7 +8,6 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.env_util import make_vec_env
 import argparse
-import glob
 import wandb
 from wandb.integration.sb3 import WandbCallback
 
@@ -31,34 +30,19 @@ class LeagueCallback(BaseCallback):
         self.run_name = run_name
         self.max_league_size = max_league_size
         os.makedirs(self.model_dir, exist_ok=True)
-        
-        # Determine starting generation based on existing files for this run_name
-        existing_models = glob.glob(os.path.join(model_dir, f"{run_name}_gen_*.zip"))
-        max_gen = 0
-        for m in existing_models:
-            try:
-                base = os.path.basename(m)
-                # Remove extension
-                name_no_ext = os.path.splitext(base)[0]
-                # split by _ and take last part
-                gen_part = name_no_ext.split('_')[-1]
-                max_gen = max(max_gen, int(gen_part))
-            except ValueError:
-                continue
-        
-        self.generation = max_gen + 1
+
         if verbose > 0:
-            print(f"LeagueCallback initialized. Check freq: {self.check_freq} steps (n_calls). Next Generation ID: {self.generation}")
+            print(f"LeagueCallback initialized. Check freq: {self.check_freq} steps (n_calls).")
 
     def _on_step(self) -> bool:
         if self.n_calls % self.check_freq == 0:
             # Save current model
-            model_name = f"{self.run_name}_gen_{self.generation}"
+            model_name = f"{self.run_name}_{self.num_timesteps}"
             model_path = os.path.join(self.model_dir, f"{model_name}.zip")
             self.model.save(model_path)
 
             if self.verbose > 0:
-                print(f"Gen {self.generation} saved: {model_path} (Global Timesteps: {self.num_timesteps})")
+                print(f"Saved: {model_path} (Global Timesteps: {self.num_timesteps})")
 
             # Inherit the current training agent's earned ELO so the snapshot
             # starts from an honest prior rather than the (potentially inflated) league mean.
@@ -82,7 +66,6 @@ class LeagueCallback(BaseCallback):
                 if data.get("type") == "ppo"
             ]
             log_data = {
-                "league/generation": self.generation,
                 "league/training_agent_elo": inherited_elo or 0,
                 "league/num_agents": len(self.league.players),
                 "league/ppo_mean_elo": float(np.mean(ppo_elos)) if ppo_elos else 0,
@@ -92,8 +75,6 @@ class LeagueCallback(BaseCallback):
             for name, elo in league_elos.items():
                 log_data[f"league/elo/{name}"] = elo
             wandb.log(log_data, step=self.num_timesteps)
-
-            self.generation += 1
 
         # Log training-agent ELO every step so it trends smoothly
         training_data = self.league.players.get("current_training_agent")

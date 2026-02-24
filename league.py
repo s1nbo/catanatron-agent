@@ -63,7 +63,7 @@ class League:
                 with open(self.league_file, "w") as f:
                     json.dump(self.players, f, indent=4)
     
-    def prune_league(self, max_size: int = 50):
+    def prune_league(self, max_size: int = 32):
         """
         Removes oldest PPO bots from the league to keep size manageable.
         Always preserves non-PPO bots (like random, alphabeta).
@@ -89,16 +89,10 @@ class League:
             if len(ppo_agents) <= max_size:
                 return
 
-            # Sort ppo agents by ELO (ascending) so we remove the weakest ones
-            # Secondary sort by generation (older first) to break ties or if ELO is same
+            # Sort ppo agents by ELO ascending so we remove the weakest ones
             def sort_key(item):
-                name, data = item
-                elo = data.get("elo", 1000)
-                try:
-                    gen = int(name.split('_')[-1])
-                except (ValueError, IndexError):
-                    gen = 0
-                return (elo, gen)
+                _, data = item
+                return data.get("elo", 1000)
 
             # Sort ascending: lowest ELO first
             ppo_agents.sort(key=sort_key)
