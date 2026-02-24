@@ -1,6 +1,7 @@
 import gymnasium as gym
 import numpy as np
 import copy
+from gymnasium import spaces
 from catanatron.gym.envs.catanatron_env import CatanatronEnv
 from catanatron.models.player import Color
 from league import League
@@ -22,6 +23,15 @@ class SelfPlayEnv(CatanatronEnv):
         
         super().__init__(config=config, **kwargs)
 
+        # Downcast observation space to float32 to halve memory usage
+        obs_space = self.observation_space
+        if isinstance(obs_space, spaces.Box) and obs_space.dtype != np.float32:
+            self.observation_space = spaces.Box(
+                low=obs_space.low.astype(np.float32),
+                high=obs_space.high.astype(np.float32),
+                dtype=np.float32,
+            )
+
     def reset(self, seed=None, options=None):
         # Sample new enemies, weighted by ELO proximity to the training agent
         hero_elo = None
@@ -42,11 +52,13 @@ class SelfPlayEnv(CatanatronEnv):
         # Update internal game configuration so super().reset() uses new enemies
         self.config["enemies"] = enemies
         
-        return super().reset(seed=seed, options=options)
+        obs, info = super().reset(seed=seed, options=options)
+        return obs.astype(np.float32), info
 
     def step(self, action):
         obs, reward, terminated, truncated, info = super().step(action)
-        
+        obs = obs.astype(np.float32)
+
         if terminated or truncated:
             winning_color = info.get("winning_color")
             if winning_color is None and hasattr(self, "game") and callable(getattr(self.game, "winning_color", None)):

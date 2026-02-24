@@ -191,7 +191,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--steps", type=int, default=500_000_000 , help="Total training steps")
     parser.add_argument("--freq", type=int, default=5_000_000, help="League update frequency")
-    parser.add_argument("--envs", type=int, default=32, help="Number of parallel environments")
+    parser.add_argument("--envs", type=int, default=16, help="Number of parallel environments")
     parser.add_argument("--load", type=str, default="league_models/v2_gen_9.zip", help="Path to model .zip to resume from")
     parser.add_argument("--name", type=str, default="v3", help="Unique name for this training run (e.g. 'run_A', 'v1')")
     args = parser.parse_args()

@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from collections import OrderedDict
 from typing import Tuple
 from catanatron import Player, Game, Action
 from catanatron.features import create_sample, get_feature_ordering
@@ -7,7 +8,9 @@ from catanatron.gym.envs.catanatron_env import to_action_space, ACTION_SPACE_SIZ
 from sb3_contrib import MaskablePPO
 
 class PPOPlayer(Player):
-    _models = {}
+    # LRU cache: keep at most _max_cache_size models per subprocess to cap RAM usage
+    _models: "OrderedDict[str, MaskablePPO]" = OrderedDict()
+    _max_cache_size = 4
     _features_ordering = None
 
     def __init__(self, color, model_path=None):
@@ -18,7 +21,16 @@ class PPOPlayer(Player):
     def _load_resources(self):
         if self.model_path and os.path.exists(self.model_path):
             if self.model_path not in PPOPlayer._models:
-                PPOPlayer._models[self.model_path] = MaskablePPO.load(self.model_path)
+                # Evict oldest entry when cache is full (LRU)
+                if len(PPOPlayer._models) >= PPOPlayer._max_cache_size:
+                    PPOPlayer._models.popitem(last=False)
+                # Load opponent models on CPU — they only do inference, no need for GPU
+                PPOPlayer._models[self.model_path] = MaskablePPO.load(
+                    self.model_path, device="cpu"
+                )
+            else:
+                # Mark as recently used
+                PPOPlayer._models.move_to_end(self.model_path)
         
         if PPOPlayer._features_ordering is None:
             PPOPlayer._features_ordering = get_feature_ordering(4)
@@ -46,7 +58,7 @@ class PPOPlayer(Player):
 
     def _get_observation(self, game: Game) -> np.ndarray:
         sample = create_sample(game, self.color)
-        return np.array([float(sample[f]) for f in PPOPlayer._features_ordering])
+        return np.array([float(sample[f]) for f in PPOPlayer._features_ordering], dtype=np.float32)
 
     def _get_action_mask(self, playable_actions: np.ndarray) -> Tuple[np.ndarray, dict]:
         mask = np.zeros(ACTION_SPACE_SIZE, dtype=bool)
