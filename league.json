@@ -2,219 +2,219 @@
     "random_red": {
         "type": "random",
         "path": null,
-        "elo": 2131.7436813060767,
-        "games": 411905
+        "elo": 2147.6576399051824,
+        "games": 415193
     },
     "alphabeta_d2": {
         "type": "alphabeta",
         "path": null,
         "depth": 2,
-        "elo": 4715.000576586622,
-        "games": 349
+        "elo": 4660.000956861445,
+        "games": 419
     },
     "alphabeta_d1": {
         "type": "alphabeta",
         "depth": 1,
         "path": null,
-        "elo": 2117.5978890803335,
-        "games": 34933
+        "elo": 2151.480202632963,
+        "games": 38424
     },
     "current_training_agent": {
         "type": "training",
         "path": null,
-        "elo": 2639.920054634476,
-        "games": 5593393
+        "elo": 2615.661683349075,
+        "games": 5686306
     },
     "real_run_gen_7": {
         "type": "ppo",
         "path": "league_models/real_run_gen_7.zip",
-        "elo": 2107.2432896196988,
-        "games": 240923
+        "elo": 2145.713589225017,
+        "games": 244338
     },
     "v3_270000000": {
         "type": "ppo",
         "path": "league_models/v3_270000000.zip",
-        "elo": 2107.304257225405,
-        "games": 21791
+        "elo": 2147.244269116694,
+        "games": 25232
     },
     "v1_gen_16": {
         "type": "ppo",
         "path": "league_models/v1_gen_16.zip",
-        "elo": 2111.557058053297,
-        "games": 95494
+        "elo": 2153.8201471875586,
+        "games": 98945
     },
     "v3_260000000": {
         "type": "ppo",
         "path": "league_models/v3_260000000.zip",
-        "elo": 2112.3036445031366,
-        "games": 28580
+        "elo": 2146.4015767622795,
+        "games": 31893
     },
     "v1_gen_4": {
         "type": "ppo",
         "path": "league_models/v1_gen_4.zip",
-        "elo": 2113.9758370719182,
-        "games": 142941
+        "elo": 2121.03859033854,
+        "games": 146098
     },
     "v3_285000000": {
         "type": "ppo",
         "path": "league_models/v3_285000000.zip",
-        "elo": 2112.215046766414,
-        "games": 13407
+        "elo": 2127.5948409817147,
+        "games": 16692
     },
     "real_run_gen_12": {
         "type": "ppo",
         "path": "league_models/real_run_gen_12.zip",
-        "elo": 2120.744595238859,
-        "games": 193287
+        "elo": 2151.062188937447,
+        "games": 196638
     },
     "v2_gen_4": {
         "type": "ppo",
         "path": "league_models/v2_gen_4.zip",
-        "elo": 2115.5546568809045,
-        "games": 52270
+        "elo": 2114.5022207781276,
+        "games": 55358
     },
     "v1_gen_24": {
         "type": "ppo",
         "path": "league_models/v1_gen_24.zip",
-        "elo": 2117.9321982010815,
-        "games": 70778
+        "elo": 2144.449493793665,
+        "games": 74101
     },
     "v2_gen_2": {
         "type": "ppo",
         "path": "league_models/v2_gen_2.zip",
-        "elo": 2116.464067748626,
-        "games": 58308
+        "elo": 2155.397612535582,
+        "games": 61879
     },
     "v2_gen_3": {
         "type": "ppo",
         "path": "league_models/v2_gen_3.zip",
-        "elo": 2119.1624880940267,
-        "games": 55533
+        "elo": 2131.5291185093406,
+        "games": 58889
     },
     "v3_275000000": {
         "type": "ppo",
         "path": "league_models/v3_275000000.zip",
-        "elo": 2118.1967032577827,
-        "games": 20023
+        "elo": 2131.7081788620535,
+        "games": 23274
     },
     "v1_gen_11": {
         "type": "ppo",
         "path": "league_models/v1_gen_11.zip",
-        "elo": 2122.220593478148,
-        "games": 113405
+        "elo": 2135.3348376064355,
+        "games": 116944
     },
     "real_run_gen_6": {
         "type": "ppo",
         "path": "league_models/real_run_gen_6.zip",
-        "elo": 2119.127041817813,
-        "games": 252151
+        "elo": 2135.846243115019,
+        "games": 255493
     },
     "v1_gen_15": {
         "type": "ppo",
         "path": "league_models/v1_gen_15.zip",
-        "elo": 2120.064123057429,
-        "games": 99468
+        "elo": 2114.4161089214117,
+        "games": 102719
     },
     "v3_295000000": {
         "type": "ppo",
         "path": "league_models/v3_295000000.zip",
-        "elo": 2120.8701647558505,
-        "games": 7568
+        "elo": 2162.4826631396963,
+        "games": 11108
     },
     "v2_gen_7": {
         "type": "ppo",
         "path": "league_models/v2_gen_7.zip",
-        "elo": 2122.316452646443,
-        "games": 42596
+        "elo": 2143.748913537567,
+        "games": 45840
     },
     "v1_gen_13": {
         "type": "ppo",
         "path": "league_models/v1_gen_13.zip",
-        "elo": 2124.8947734895646,
-        "games": 107326
+        "elo": 2134.7225266487408,
+        "games": 110635
     },
     "v1_gen_23": {
         "type": "ppo",
         "path": "league_models/v1_gen_23.zip",
-        "elo": 2123.4617844114314,
-        "games": 74220
+        "elo": 2135.327162769207,
+        "games": 77590
     },
     "v1_gen_17": {
         "type": "ppo",
         "path": "league_models/v1_gen_17.zip",
-        "elo": 2128.374295264687,
-        "games": 92441
+        "elo": 2136.9552213378174,
+        "games": 95776
     },
     "v2_gen_6": {
         "type": "ppo",
         "path": "league_models/v2_gen_6.zip",
-        "elo": 2127.823477174919,
-        "games": 45993
+        "elo": 2140.4521287816883,
+        "games": 49473
     },
     "v1_gen_26": {
         "type": "ppo",
         "path": "league_models/v1_gen_26.zip",
-        "elo": 2125.841910550575,
-        "games": 65052
+        "elo": 2135.022841139832,
+        "games": 68433
     },
     "v2_gen_8": {
         "type": "ppo",
         "path": "league_models/v2_gen_8.zip",
-        "elo": 2125.9849308822886,
-        "games": 39976
+        "elo": 2143.654460062564,
+        "games": 43387
     },
     "v1_gen_9": {
         "type": "ppo",
         "path": "league_models/v1_gen_9.zip",
-        "elo": 2131.973196391143,
-        "games": 120839
+        "elo": 2129.811045611309,
+        "games": 124045
     },
     "v3_290000000": {
         "type": "ppo",
         "path": "league_models/v3_290000000.zip",
-        "elo": 2131.0299590008863,
-        "games": 9985
+        "elo": 2123.7330945766284,
+        "games": 13162
     },
     "v2_gen_9": {
         "type": "ppo",
         "path": "league_models/v2_gen_9.zip",
-        "elo": 2134.2716463058373,
-        "games": 36642
+        "elo": 2130.0228286972974,
+        "games": 39973
     },
     "real_run_gen_14": {
         "type": "ppo",
         "path": "league_models/real_run_gen_14.zip",
-        "elo": 2132.8713244919004,
-        "games": 178328
+        "elo": 2135.174146054344,
+        "games": 181726
     },
     "v3_280000000": {
         "type": "ppo",
         "path": "league_models/v3_280000000.zip",
-        "elo": 2137.2334813530274,
-        "games": 16511
+        "elo": 2141.8386891390955,
+        "games": 19848
     },
     "real_run_gen_10": {
         "type": "ppo",
         "path": "league_models/real_run_gen_10.zip",
-        "elo": 2143.371771941762,
-        "games": 209839
+        "elo": 2149.518431023992,
+        "games": 213313
     },
     "v1_gen_25": {
         "type": "ppo",
         "path": "league_models/v1_gen_25.zip",
-        "elo": 2141.153736321525,
-        "games": 67563
+        "elo": 2110.9759875901022,
+        "games": 70815
     },
     "v3_300000000": {
         "type": "ppo",
         "path": "league_models/v3_300000000.zip",
-        "elo": 2143.7449698502705,
-        "games": 4187
+        "elo": 2132.8505502918742,
+        "games": 7647
     },
     "v3_305000000": {
         "type": "ppo",
         "path": "league_models/v3_305000000.zip",
-        "elo": 2556.0014859454545,
-        "games": 58
+        "elo": 2172.3969735783007,
+        "games": 4663
     }
 }

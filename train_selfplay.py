@@ -117,12 +117,22 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
     
     # Tuned hyperparameters from Optuna optimization (Hardcoded)
     learning_rate = 0.0009674608384885506
-    n_steps = 1024
-    batch_size = 512
+    n_steps = 2048
+    batch_size = 4096
     ent_coef = 3.641487559642055e-05
     gamma = 0.9996030561768017
     gae_lambda = 0.9998258433696674
     clip_range = 0.38705285305039916
+
+    # Large network to saturate the GPU.
+    # NOTE: architecture is baked into a saved model — loading from an old checkpoint
+    # keeps the old (smaller) arch. Start a new run to use this larger network.
+    policy_kwargs = dict(
+        net_arch=dict(
+            pi=[512, 512, 512, 256],
+            vf=[512, 512, 512, 256],
+        )
+    )
 
     if load_path and os.path.exists(load_path):
         print(f"Loading existing model from {load_path}...")
@@ -160,7 +170,8 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
             ent_coef=ent_coef,
             gamma=gamma,
             gae_lambda=gae_lambda,
-            clip_range=clip_range
+            clip_range=clip_range,
+            policy_kwargs=policy_kwargs,
         )
     
     print(f"Starting Self-Play Training for {total_timesteps} steps...")
@@ -189,11 +200,11 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--steps", type=int, default=500_000_000 , help="Total training steps")
+    parser.add_argument("--steps", type=int, default=1_000_000_000 , help="Total training steps")
     parser.add_argument("--freq", type=int, default=5_000_000, help="League update frequency")
-    parser.add_argument("--envs", type=int, default=16, help="Number of parallel environments")
-    parser.add_argument("--load", type=str, default="league_models/v3_305000000.zip", help="Path to model .zip to resume from")
-    parser.add_argument("--name", type=str, default="v4", help="Unique name for this training run (e.g. 'run_A', 'v1')")
+    parser.add_argument("--envs", type=int, default=40, help="Number of parallel environments")
+    parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
+    parser.add_argument("--name", type=str, default="g1-v0", help="Unique name for this training run (e.g. 'run_A', 'v1')")
     args = parser.parse_args()
     
     train_selfplay(args.steps, args.freq, args.envs, args.load, args.name)
