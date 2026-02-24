@@ -14,10 +14,12 @@ LEAGUE_FILE = "league.json"
 LOCK_FILE = "league.json.lock"
 
 class League:
-    def __init__(self, league_file=LEAGUE_FILE):
+    def __init__(self, league_file=LEAGUE_FILE, buffer_size=1000):
         self.league_file = league_file
         self.lock = FileLock(LOCK_FILE)
         self.players = self._load_league()
+        self.buffer_size = buffer_size
+        self.pending_updates = []
 
     def _load_league(self) -> Dict:
         with self.lock:
@@ -131,6 +133,14 @@ class League:
 
 
     def update_elo(self, winner: str, losers: List[str]):
+        """Buffers the ELO update and writes to disk only when buffer is full."""
+        self.pending_updates.append((winner, losers))
+        
+        if len(self.pending_updates) >= self.buffer_size:
+            self._flush_updates()
+
+    def _flush_updates(self):
+        print(f"[League] Flushing {len(self.pending_updates)} game results to disk...")
         with self.lock:
             # Reload league to get fresh ELOs
             if os.path.exists(self.league_file):
@@ -163,20 +173,42 @@ class League:
                 winner_elo = winner_data["elo"] if winner_data else 1000
                 loser_elo = loser_data["elo"]
 
-                # Expected win prob for winner
-                ea = 1 / (1 + 10 ** ((loser_elo - winner_elo) / 400))
-                eb = 1 / (1 + 10 ** ((winner_elo - loser_elo) / 400))
-                
-                # Winner wins (score = 1), Loser loses (score = 0)
                 if winner_data:
-                    winner_data["elo"] += K * (1 - ea)
-                    winner_data["games"] += 1
+                    winner_elo = winner_data["elo"]
+                else:
+                    # Estimate hero ELO as league mean + small boost
+                    winner_elo = league_mean + 100
                 
-                loser_data["elo"] += K * (0 - eb)
-                loser_data["games"] += 1
+                for loser in losers:
+                    loser_data = self.players.get(loser)
+                    if not loser_data: continue
+                    
+                    loser_elo = loser_data["elo"]
 
+                    # Expected win prob for winner
+                    ea = 1 / (1 + 10 ** ((loser_elo - winner_elo) / 400))
+                    
+                    # Expected win prob for loser
+                    eb = 1 / (1 + 10 ** ((winner_elo - loser_elo) / 400))
+                    
+                    # Update scores
+                    if winner_data:
+                        winner_data["elo"] += K * (1 - ea)
+                        winner_data["games"] += 1
+                    
+                    loser_data["elo"] += K * (0 - eb)
+                    loser_data["games"] += 1
+            
+            # Anchor random_v0 to 1000 ELO to prevent deflation
+            if "random_v0" in self.players:
+                self.players["random_v0"]["elo"] = 1000
+
+            # Write back to disk
             with open(self.league_file, "w") as f:
                 json.dump(self.players, f, indent=4)
+        
+        # Clear buffer
+        self.pending_updates = []
 
     def sample_opponents(self, n=3, hero_elo: Optional[float] = None) -> List[Tuple[str, Dict]]:
         """
