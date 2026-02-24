@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import random
 import numpy as np
@@ -6,8 +7,7 @@ from typing import List, Dict, Tuple, Optional
 from filelock import FileLock
 from catanatron import Player, Game
 from catanatron.models.player import Color, RandomPlayer
-
-# from catanatron.players.minimax import AlphaBetaPlayer  # Used for testing
+from catanatron.players.minimax import AlphaBetaPlayer
 from ppo_player import PPOPlayer
 
 LEAGUE_FILE = "league.json"
@@ -28,7 +28,7 @@ class League:
                 # Initialize with baseline players
                 initial_players = {
                     "random_red": {"type": "random", "path": None, "elo": 1000, "games": 0},
-                    # "alphabeta_deep": {"type": "alphabeta", "path": None, "elo": 1200, "games": 0},
+                    "alphabeta_d1": {"type": "alphabeta", "path": None, "depth": 1, "elo": 3000, "games": 0},
                 }
                 with open(self.league_file, "w") as f:
                     json.dump(initial_players, f, indent=4)
@@ -178,22 +178,41 @@ class League:
             with open(self.league_file, "w") as f:
                 json.dump(self.players, f, indent=4)
 
-    def sample_opponents(self, n=3) -> List[Tuple[str, Dict]]:
+    def sample_opponents(self, n=3, hero_elo: Optional[float] = None) -> List[Tuple[str, Dict]]:
+        """
+        Sample n opponents using ELO-weighted probabilities when hero_elo is provided.
+        Opponents closer in ELO to the hero are sampled more often, which prevents
+        a much-stronger opponent (e.g. AlphaBeta) from dominating the pool before
+        the agent is ready to learn from it.
+        """
         # Reload league to get latest players
         with self.lock:
-             if os.path.exists(self.league_file):
+            if os.path.exists(self.league_file):
                 with open(self.league_file, "r") as f:
-                     self.players = json.load(f)
+                    self.players = json.load(f)
 
-        names = list(self.players.keys())
+        # Exclude the training agent itself from the opponent pool
+        names = [k for k in self.players.keys() if k != "current_training_agent"]
         if not names:
-             return []
-             
-        if len(names) < n:
-            selected_names = [random.choice(names) for _ in range(n)]
+            return []
+
+        if hero_elo is not None:
+            # Weight by proximity in ELO: exp(-|delta_elo| / 400)
+            # This gives ~37% relative weight at 400 pts difference, ~14% at 800 pts.
+            weights = [
+                math.exp(-abs(self.players[name]["elo"] - hero_elo) / 400)
+                for name in names
+            ]
+            total = sum(weights)
+            probs = [w / total for w in weights]
         else:
-            selected_names = random.sample(names, n)
-            
+            probs = None
+
+        replace = len(names) < n
+        selected_names = list(
+            np.random.choice(names, size=n, replace=replace, p=probs)
+        )
+
         return [(name, self.players[name]) for name in selected_names]
 
     def get_player_instance(self, name, color, data=None):
@@ -205,9 +224,9 @@ class League:
         
         if data["type"] == "random":
             return RandomPlayer(color)
-        # elif data["type"] == "alphabeta":
+        elif data["type"] == "alphabeta":
             depth = data.get("depth", 2)
-            # return AlphaBetaPlayer(color, depth=depth)
+            return AlphaBetaPlayer(color, depth=depth)
         elif data["type"] == "ppo":
             return PPOPlayer(color, model_path=data["path"])
         else:

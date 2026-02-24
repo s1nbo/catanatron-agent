@@ -23,8 +23,12 @@ class SelfPlayEnv(CatanatronEnv):
         super().__init__(config=config, **kwargs)
 
     def reset(self, seed=None, options=None):
-        # Sample new enemies
-        enemy_data = self.league.sample_opponents(3)
+        # Sample new enemies, weighted by ELO proximity to the training agent
+        hero_elo = None
+        hero_data = self.league.players.get(self.hero_name)
+        if hero_data:
+            hero_elo = hero_data.get("elo")
+        enemy_data = self.league.sample_opponents(3, hero_elo=hero_elo)
         self.current_enemy_names = [name for name, _ in enemy_data]
         
         # Assign colors to enemies

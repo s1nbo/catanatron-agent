@@ -34,8 +34,7 @@ for name in ["random_blue", "random_orange", "random_white"]:
     league.add_player(name, "random")
 
 # Add alphabeta bots with different depths
-#league.players["alphabeta_d1"] = {"type": "alphabeta", "depth": 1, "path": None, "elo": 1000, "games": 0}
-#league.players["alphabeta_d2"] = {"type": "alphabeta", "depth": 2, "path": None, "elo": 1000, "games": 0}
+league.players["alphabeta_d1"] = {"type": "alphabeta", "depth": 1, "path": None, "elo": 1000, "games": 0}
 
 # Add pre-trained PPO agents
 for name, path in PPO_AGENTS.items():

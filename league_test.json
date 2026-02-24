@@ -2,43 +2,57 @@
     "random_red": {
         "type": "random",
         "path": null,
-        "elo": 997.5179384517085,
-        "games": 5
+        "elo": 998.0150536315299,
+        "games": 6
+    },
+    "alphabeta_d2": {
+        "type": "alphabeta",
+        "path": null,
+        "depth": 2,
+        "elo": 4999.000019828365,
+        "games": 7
     },
     "random_blue": {
         "type": "random",
         "path": null,
-        "elo": 998.5328609306888,
-        "games": 9
+        "elo": 2997.502918661843,
+        "games": 7
     },
     "random_orange": {
         "type": "random",
         "path": null,
-        "elo": 999.0199170984988,
-        "games": 8
+        "elo": 2996.0000409623917,
+        "games": 4
     },
     "random_white": {
         "type": "random",
         "path": null,
-        "elo": 997.5186175964029,
-        "games": 5
+        "elo": 2997.497132351638,
+        "games": 4
+    },
+    "alphabeta_d1": {
+        "type": "alphabeta",
+        "depth": 1,
+        "path": null,
+        "elo": 1004.990619084876,
+        "games": 7
     },
     "ppo_catanatron_01": {
         "type": "ppo",
         "path": "start/ppo_catanatron_01.zip",
-        "elo": 1002.983393008749,
-        "games": 12
+        "elo": 1005.9762940671643,
+        "games": 10
     },
     "ppo_catanatron_02": {
         "type": "ppo",
         "path": "start/ppo_catanatron_02.zip",
-        "elo": 1006.9236074317064,
-        "games": 16
+        "elo": 1003.4928174343329,
+        "games": 9
     },
     "ppo_catanatron_03": {
         "type": "ppo",
         "path": "start/ppo_catanatron_03.zip",
-        "elo": 997.5036654822457,
-        "games": 5
+        "elo": 997.525103977859,
+        "games": 6
     }
 }
