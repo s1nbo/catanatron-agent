@@ -83,9 +83,9 @@ def create_bot_class(model_path, name):
 
 # --- Configure which league models to use here ---
 Bot01 = create_bot_class(league_model("v2_gen_9"),         "Bot01_v2_gen_9")
-Bot02 = create_bot_class(league_model("v1_gen_25"),        "Bot02_v1_gen_26")
-Bot03 = create_bot_class(league_model("real_run_gen_14"),  "Bot03_real_run_gen_14")
-Bot04 = create_bot_class(league_model("v1_gen_21"),        "Bot04_v1_gen_21")
+Bot02 = create_bot_class(league_model("g1-v0_65000000"),        "Bot02_g1-v0_65000000")
+Bot03 = create_bot_class(league_model("v3_305000000"),  "Bot03_v3_305000000")
+Bot04 = create_bot_class(league_model("v1_gen_25"),        "Bot04_v1_gen_25")
 
 class D1(AlphaBetaPlayer):
     def __init__(self, color):

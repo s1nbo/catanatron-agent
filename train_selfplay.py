@@ -124,7 +124,7 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
     gae_lambda = 0.9998258433696674
     clip_range = 0.38705285305039916
 
-    # Large network to saturate the GPU.
+
     # NOTE: architecture is baked into a saved model — loading from an old checkpoint
     # keeps the old (smaller) arch. Start a new run to use this larger network.
     policy_kwargs = dict(
