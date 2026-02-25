@@ -1,3 +1,4 @@
+import gc
 import gymnasium as gym
 import numpy as np
 import copy
@@ -12,8 +13,9 @@ class SelfPlayEnv(CatanatronEnv):
             config = {}
         
         self.league = League()
-        self.hero_name = "current_training_agent" 
-        
+        self.hero_name = "current_training_agent"
+        self._reset_count = 0
+
         # The reset() method will sample actual opponents from the league and update this config before each episode starts.
         config["enemies"] = [
             self.league.get_player_instance("random_red", Color.RED, {"type": "random"}),
@@ -33,6 +35,13 @@ class SelfPlayEnv(CatanatronEnv):
             )
 
     def reset(self, seed=None, options=None):
+        # Release the old game before the parent creates a new one.
+        # catanatron Game/State objects have internal reference cycles that
+        # prevent immediate CPython refcount deallocation — clearing the ref
+        # here lets the GC reclaim them much sooner.
+        if hasattr(self, "game"):
+            self.game = None
+
         # Sample new enemies, weighted by ELO proximity to the training agent
         hero_elo = None
         hero_data = self.league.players.get(self.hero_name)
@@ -40,7 +49,7 @@ class SelfPlayEnv(CatanatronEnv):
             hero_elo = hero_data.get("elo")
         enemy_data = self.league.sample_opponents(3, hero_elo=hero_elo)
         self.current_enemy_names = [name for name, _ in enemy_data]
-        
+
         # Assign colors to enemies
         # Assumes Hero is BLUE. We assign other colors to enemies.
         colors = [Color.RED, Color.ORANGE, Color.WHITE]
@@ -48,11 +57,24 @@ class SelfPlayEnv(CatanatronEnv):
         for i, (name, data) in enumerate(enemy_data):
             player = self.league.get_player_instance(name, colors[i], data)
             enemies.append(player)
-            
-        # Update internal game configuration so super().reset() uses new enemies
+
+        # Update self.config["enemies"], self.enemies, AND self.players.
+        # The parent's reset() calls Game(players=self.players) — it never
+        # re-reads self.config — so only updating self.config left the game
+        # running the original __init__-time players every episode while new
+        # player objects accumulated unreferenced in self.config["enemies"].
         self.config["enemies"] = enemies
-        
+        self.enemies = enemies
+        self.players = [self.p0] + enemies
+
         obs, info = super().reset(seed=seed, options=options)
+
+        # Periodically sweep cyclic garbage (Game/State cycles that refcount
+        # alone cannot free) without adding meaningful overhead.
+        self._reset_count += 1
+        if self._reset_count % 200 == 0:
+            gc.collect()
+
         return obs.astype(np.float32), info
 
     def step(self, action):
@@ -82,8 +104,18 @@ class SelfPlayEnv(CatanatronEnv):
 
                 if winner_name:
                     self.league.update_elo(winner_name, loser_names)
-                
+
         return obs, reward, terminated, truncated, info
 
-
+    def close(self):
+        # Drop game and player references so the subprocess can release memory
+        # cleanly on shutdown rather than leaking into the next run.
+        if hasattr(self, "game"):
+            self.game = None
+        if hasattr(self, "players"):
+            self.players = []
+        if hasattr(self, "enemies"):
+            self.enemies = []
+        super().close()
+        gc.collect()
 

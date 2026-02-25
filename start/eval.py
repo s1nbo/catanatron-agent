@@ -83,13 +83,13 @@ def create_bot_class(model_path, name):
 
 # --- Configure which league models to use here ---
 Bot01 = create_bot_class(league_model("v2_gen_9"),         "Bot01_v2_gen_9")
-Bot02 = create_bot_class(league_model("g1-v0_65000000"),        "Bot02_g1-v0_65000000")
-Bot03 = create_bot_class(league_model("v3_305000000"),  "Bot03_v3_305000000")
-Bot04 = create_bot_class(league_model("v1_gen_25"),        "Bot04_v1_gen_25")
+Bot02 = create_bot_class(league_model("v3_285000000"),        "Bot02_v3_285M")  # Note: this model is from a different run and may have different training dynamics.
+Bot03 = create_bot_class(league_model("real_run_gen_14"),  "Bot03_real_run_gen_14")  # Note: this model is from a different run and may have different training dynamics.
+Bot04 = create_bot_class(league_model("g1-v0_120000000"),        "Bot04_g1-v0_120M")  # Note: this model is from a different run and may have different training dynamics.
 
 class D1(AlphaBetaPlayer):
     def __init__(self, color):
-        super().__init__(color, depth=1, prunning=True)
+        super().__init__(color, depth=2, prunning=True)
 
 register_cli_player("1", Bot01)
 register_cli_player("2", Bot02)

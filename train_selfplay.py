@@ -105,7 +105,7 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
 
     league = League()
     max_league_size = 32
-    
+    print(f"Current league size: {len(league.players)} agents")
     # Create env
     env = make_vec_env(
         SelfPlayEnv,
@@ -113,6 +113,7 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
         wrapper_class=ActionMasker,
         wrapper_kwargs={"action_mask_fn": mask_fn},
         vec_env_cls=SubprocVecEnv,
+        vec_env_kwargs={"start_method": "forkserver"},
     )
     
     # Tuned hyperparameters from Optuna optimization (Hardcoded)
@@ -136,12 +137,8 @@ def train_selfplay(total_timesteps, check_freq, n_envs, load_path=None, run_name
 
     if load_path and os.path.exists(load_path):
         print(f"Loading existing model from {load_path}...")
-        # Note: We need to pass tensorboard_log etc. if we want to continue logging properly
-        # However, .load() creates a new object. We should update its attributes if needed.
-        # But 'learning_rate' etc are usually baked in.
-        # But Stable Baselines3 saves hyperparams. MaskablePPO.load should work fine.
         model = MaskablePPO.load(
-            load_path, 
+            load_path,
             env=env,
             device="cuda",
             tensorboard_log="runs/selfplay",
@@ -202,9 +199,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--steps", type=int, default=1_000_000_000 , help="Total training steps")
     parser.add_argument("--freq", type=int, default=5_000_000, help="League update frequency")
-    parser.add_argument("--envs", type=int, default=40, help="Number of parallel environments")
-    parser.add_argument("--load", type=str, default=None, help="Path to model .zip to resume from")
-    parser.add_argument("--name", type=str, default="g1-v0", help="Unique name for this training run (e.g. 'run_A', 'v1')")
+    parser.add_argument("--envs", type=int, default=8, help="Number of parallel environments")
+    parser.add_argument("--load", type=str, default="/home/sinan/Desktop/catanatron-agent/league_models/g1-v0_120000000.zip", help="Path to model .zip to resume from")
+    parser.add_argument("--name", type=str, default="g1-v1", help="Unique name for this training run (e.g. 'run_A', 'v1')")
     args = parser.parse_args()
     
     train_selfplay(args.steps, args.freq, args.envs, args.load, args.name)
